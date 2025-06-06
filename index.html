@@ -689,29 +689,158 @@
     }
 
     // Export ke Excel (.xls agar tidak corrupt) + info proyek & penyedia
-    function exportToExcel() {
-        if (rabItems.length === 0) {
-            alert('Tidak ada data untuk diekspor!');
-            return;
-        }
+    // Export ke Excel (.xls) + rekap subtotal, ppn, total
+function exportToExcel() {
+    if (rabItems.length === 0) {
+        alert('Tidak ada data untuk diekspor!');
+        return;
+    }
 
-        // Ambil info proyek
-        const name = document.getElementById('projectName').value || '-';
-        const location = document.getElementById('projectLocation').value || '-';
-        const date = document.getElementById('projectDate').value || '-';
-        const consultant = document.getElementById('projectConsultant').value || '-';
-        const supplier = document.getElementById('projectSupplier').value || '-';
+    const name = document.getElementById('projectName').value || '-';
+    const location = document.getElementById('projectLocation').value || '-';
+    const date = document.getElementById('projectDate').value || '-';
+    const consultant = document.getElementById('projectConsultant').value || '-';
+    const supplier = document.getElementById('projectSupplier').value || '-';
 
-        let table = `
-            <table border="1" style="margin-bottom:10px">
+    let subtotal = rabItems.reduce((sum, item) => sum + item.total, 0);
+    let ppn = subtotal * 0.11;
+    let grandTotal = subtotal + ppn;
+
+    let table = `
+        <table border="1" style="margin-bottom:10px">
+            <tr><td><b>Nama Proyek</b></td><td>${name}</td></tr>
+            <tr><td><b>Lokasi</b></td><td>${location}</td></tr>
+            <tr><td><b>Tanggal</b></td><td>${date}</td></tr>
+            <tr><td><b>PIC/Konsultan</b></td><td>${consultant}</td></tr>
+            <tr><td><b>Nama Penyedia</b></td><td>${supplier}</td></tr>
+        </table>
+        <br>
+        <table border="1">
+            <tr>
+                <th>No</th>
+                <th>Uraian Pekerjaan</th>
+                <th>Satuan</th>
+                <th>Volume</th>
+                <th>Harga Satuan (Rp)</th>
+                <th>Jumlah Harga (Rp)</th>
+            </tr>`;
+    rabItems.forEach((item, i) => {
+        table += `<tr>
+            <td>${i + 1}</td>
+            <td>${item.description}</td>
+            <td>${item.unit}</td>
+            <td>${item.volume}</td>
+            <td>${formatAngka(item.price)}</td>
+            <td>${formatAngka(item.total)}</td>
+        </tr>`;
+    });
+    table += `</table>
+    <br>
+    <table border="1">
+        <tr><td><b>Subtotal</b></td><td>Rp ${subtotal.toLocaleString('id-ID')}</td></tr>
+        <tr><td><b>PPN 11%</b></td><td>Rp ${ppn.toLocaleString('id-ID')}</td></tr>
+        <tr><td><b>Total Keseluruhan</b></td><td>Rp ${grandTotal.toLocaleString('id-ID')}</td></tr>
+    </table>
+    <div style="text-align:center; color:#95a5a6; font-size:0.9em; margin-top:40px; opacity:0.8;">
+        © 2025 permana.kp.mjm | All Rights Reserved
+    </div>`;
+
+    const blob = new Blob([table], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "RAB.xls";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Export ke CSV + rekap subtotal, ppn, total
+function exportToCSV() {
+    if (rabItems.length === 0) {
+        alert('Tidak ada data untuk diekspor!');
+        return;
+    }
+
+    let csv = "No,Uraian Pekerjaan,Satuan,Volume,Harga Satuan (Rp),Jumlah Harga (Rp)\n";
+    rabItems.forEach((item, i) => {
+        csv += `"${i + 1}","${item.description}","${item.unit}","${item.volume}","${item.price}","${item.total}"\n`;
+    });
+
+    let subtotal = rabItems.reduce((sum, item) => sum + item.total, 0);
+    let ppn = subtotal * 0.11;
+    let grandTotal = subtotal + ppn;
+
+    csv += `,,,,,\nSubtotal,,,,,"${subtotal}"\nPPN 11%,,,,,"${ppn}"\nTotal Keseluruhan,,,,,"${grandTotal}"\n`;
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "RAB.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Print RAB + rekap subtotal, ppn, total
+function printRAB() {
+    const name = document.getElementById('projectName').value || '-';
+    const location = document.getElementById('projectLocation').value || '-';
+    const date = document.getElementById('projectDate').value || '-';
+    const consultant = document.getElementById('projectConsultant').value || '-';
+    const supplier = document.getElementById('projectSupplier').value || '-';
+
+    let subtotal = rabItems.reduce((sum, item) => sum + item.total, 0);
+    let ppn = subtotal * 0.11;
+    let grandTotal = subtotal + ppn;
+
+    let html = `
+        <html>
+        <head>
+            <title>Print RAB</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #222; margin:0; padding-bottom:60px;}
+                table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                th, td { border: 1px solid #444; padding: 8px; }
+                th { background: #eee; }
+                h2 { margin-bottom: 10px; }
+                .copyright-print {
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    text-align: center;
+                    color: #95a5a6;
+                    font-size: 0.9em;
+                    opacity: 0.8;
+                    padding: 10px 0 10px 0;
+                    background: #fff;
+                }
+                @media print {
+                    body { margin-bottom: 60px !important; }
+                    .copyright-print {
+                        position: fixed !important;
+                        bottom: 0 !important;
+                        left: 0 !important;
+                        right: 0 !important;
+                        background: #fff !important;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <h2>Rencana Anggaran Biaya</h2>
+            <table>
                 <tr><td><b>Nama Proyek</b></td><td>${name}</td></tr>
                 <tr><td><b>Lokasi</b></td><td>${location}</td></tr>
                 <tr><td><b>Tanggal</b></td><td>${date}</td></tr>
                 <tr><td><b>PIC/Konsultan</b></td><td>${consultant}</td></tr>
                 <tr><td><b>Nama Penyedia</b></td><td>${supplier}</td></tr>
             </table>
-            <br>
-            <table border="1">
+            <table>
                 <tr>
                     <th>No</th>
                     <th>Uraian Pekerjaan</th>
@@ -720,119 +849,37 @@
                     <th>Harga Satuan (Rp)</th>
                     <th>Jumlah Harga (Rp)</th>
                 </tr>`;
-        rabItems.forEach((item, i) => {
-            table += `<tr>
-                <td>${i + 1}</td>
-                <td>${item.description}</td>
-                <td>${item.unit}</td>
-                <td>${item.volume}</td>
-                <td>${formatAngka(item.price)}</td>
-                <td>${formatAngka(item.total)}</td>
-            </tr>`;
-        });
-        table += `</table>
-        <div style="text-align:center; color:#95a5a6; font-size:0.9em; margin-top:40px; opacity:0.8;">
+    rabItems.forEach((item, i) => {
+        html += `<tr>
+            <td>${i + 1}</td>
+            <td>${item.description}</td>
+            <td>${item.unit}</td>
+            <td>${item.volume}</td>
+            <td>${formatAngka(item.price)}</td>
+            <td>${formatAngka(item.total)}</td>
+        </tr>`;
+    });
+    html += `</table>
+        <table>
+            <tr><td><b>Subtotal</b></td><td>Rp ${subtotal.toLocaleString('id-ID')}</td></tr>
+            <tr><td><b>PPN 11%</b></td><td>Rp ${ppn.toLocaleString('id-ID')}</td></tr>
+            <tr><td><b>Total Keseluruhan</b></td><td>Rp ${grandTotal.toLocaleString('id-ID')}</td></tr>
+        </table>
+        <div class="copyright-print">
             © 2025 permana.kp.mjm | All Rights Reserved
-        </div>`;
+        </div>
+        </body>
+        </html>
+    `;
 
-        const blob = new Blob([table], { type: "application/vnd.ms-excel" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "RAB.xls";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-
-    // Export ke CSV
-    function exportToCSV() {
-        if (rabItems.length === 0) {
-            alert('Tidak ada data untuk diekspor!');
-            return;
-        }
-
-        let csv = "No,Uraian Pekerjaan,Satuan,Volume,Harga Satuan (Rp),Jumlah Harga (Rp)\n";
-        rabItems.forEach((item, i) => {
-            csv += `"${i + 1}","${item.description}","${item.unit}","${item.volume}","${item.price}","${item.total}"\n`;
-        });
-
-        const blob = new Blob([csv], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "RAB.csv";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-
-    // Print RAB: hanya info proyek & tabel RAB
-    function printRAB() {
-        const name = document.getElementById('projectName').value || '-';
-        const location = document.getElementById('projectLocation').value || '-';
-        const date = document.getElementById('projectDate').value || '-';
-        const consultant = document.getElementById('projectConsultant').value || '-';
-        const supplier = document.getElementById('projectSupplier').value || '-';
-
-        let html = `
-            <html>
-            <head>
-                <title>Print RAB</title>
-                <style>
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #222; }
-                    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-                    th, td { border: 1px solid #444; padding: 8px; }
-                    th { background: #eee; }
-                    h2 { margin-bottom: 10px; }
-                    .copyright-print { text-align:center; color:#95a5a6; font-size:0.9em; margin-top:40px; opacity:0.8; }
-                </style>
-            </head>
-            <body>
-                <h2>Rencana Anggaran Biaya</h2>
-                <table>
-                    <tr><td><b>Nama Proyek</b></td><td>${name}</td></tr>
-                    <tr><td><b>Lokasi</b></td><td>${location}</td></tr>
-                    <tr><td><b>Tanggal</b></td><td>${date}</td></tr>
-                    <tr><td><b>PIC/Konsultan</b></td><td>${consultant}</td></tr>
-                    <tr><td><b>Nama Penyedia</b></td><td>${supplier}</td></tr>
-                </table>
-                <table>
-                    <tr>
-                        <th>No</th>
-                        <th>Uraian Pekerjaan</th>
-                        <th>Satuan</th>
-                        <th>Volume</th>
-                        <th>Harga Satuan (Rp)</th>
-                        <th>Jumlah Harga (Rp)</th>
-                    </tr>`;
-        rabItems.forEach((item, i) => {
-            html += `<tr>
-                <td>${i + 1}</td>
-                <td>${item.description}</td>
-                <td>${item.unit}</td>
-                <td>${item.volume}</td>
-                <td>${formatAngka(item.price)}</td>
-                <td>${formatAngka(item.total)}</td>
-            </tr>`;
-        });
-        html += `</table>
-            <div class="copyright-print">
-                © 2025 permana.kp.mjm | All Rights Reserved
-            </div>
-            </body>
-            </html>
-        `;
-
-        const win = window.open('', '', 'width=900,height=700');
-        win.document.write(html);
-        win.document.close();
-        win.focus();
-        win.print();
-        win.close();
-    }
+    const win = window.open('', '', 'width=900,height=700');
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    win.print();
+    win.close();
+}
+    
     </script>
 </body>
 </html>
