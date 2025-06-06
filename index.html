@@ -131,7 +131,7 @@
             outline: none;
             border-color: #e67e22;
         }
-        .add-btn {
+        .add-btn, .save-btn {
             background: linear-gradient(135deg, #e67e22, #f39c12);
             color: white;
             border: none;
@@ -144,8 +144,9 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             border: 2px solid transparent;
+            margin-right: 10px;
         }
-        .add-btn:hover {
+        .add-btn:hover, .save-btn:hover {
             background: linear-gradient(135deg, #d35400, #e67e22);
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(230, 126, 34, 0.3);
@@ -297,6 +298,15 @@
             .summary-grid { grid-template-columns: 1fr; }
             th, td { padding: 12px 8px; font-size: 12px; }
             .header-left h1 { font-size: 1.6em; }
+            .add-btn, .save-btn { width: 100%; margin-bottom: 10px; }
+        }
+        .add-save-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        @media (max-width: 600px) {
+            .add-save-btns { flex-direction: column; }
         }
     </style>
 </head>
@@ -318,7 +328,7 @@
         
         <div class="content">
             <div class="auto-save-info">
-                <strong>💾 MANUAL SAVE</strong> - Data hanya tersimpan jika Anda klik tombol <b>SAVE DATA</b> di bawah. Data tidak akan hilang saat refresh/tutup aplikasi jika sudah di-save.
+                <strong>💾 MANUAL SAVE</strong> - Data hanya tersimpan jika Anda klik tombol <b>SAVE DATA</b> di samping tombol tambah item. Data tidak akan hilang saat refresh/tutup aplikasi jika sudah di-save.
             </div>
             
             <!-- Project Information -->
@@ -367,7 +377,10 @@
                     <input type="number" id="itemVolume" placeholder="Volume" step="0.01">
                     <input type="number" id="itemPrice" placeholder="Harga Satuan (Rp)" step="0.01">
                 </div>
-                <button class="add-btn" onclick="addItem()">⚡ Tambah Item</button>
+                <div class="add-save-btns">
+                    <button class="add-btn" onclick="addItem()">⚡ Tambah Item</button>
+                    <button class="save-btn" onclick="saveToStorage()">💾 Save Data</button>
+                </div>
             </div>
             
             <!-- RAB Table -->
@@ -431,7 +444,6 @@
                 <button class="export-btn" onclick="exportToCSV()">📄 Export CSV</button>
                 <button class="export-btn" onclick="printRAB()">🖨️ Print RAB</button>
                 <button class="export-btn" onclick="clearAllData()">🗑️ Clear Data</button>
-                <button class="export-btn" onclick="saveToStorage()">💾 Save Data</button>
             </div>
         </div>
     </div>
