@@ -308,6 +308,13 @@
         @media (max-width: 600px) {
             .add-save-btns { flex-direction: column; }
         }
+        footer {
+            text-align:center;
+            color:#95a5a6;
+            font-size:0.9em;
+            margin-top:40px;
+            opacity:0.8;
+        }
     </style>
 </head>
 <body>
@@ -447,10 +454,17 @@
             </div>
         </div>
     </div>
-
+    <footer>
+        © 2025 permana.kp.mjm | All Rights Reserved
+    </footer>
     <script>
     let rabItems = [];
     let itemCounter = 0;
+
+    // Format angka ribuan tanpa Rp
+    function formatAngka(num) {
+        return Number(num).toLocaleString('id-ID');
+    }
 
     function saveToStorage() {
         const data = {
@@ -609,8 +623,8 @@
                 <td>${item.description}</td>
                 <td>${item.unit}</td>
                 <td class="number">${item.volume.toLocaleString('id-ID')}</td>
-                <td class="number">${formatRupiah(item.price)}</td>
-                <td class="number"><strong>${formatRupiah(item.total)}</strong></td>
+                <td class="number">${formatAngka(item.price)}</td>
+                <td class="number"><strong>${formatAngka(item.total)}</strong></td>
                 <td>
                     <button class="delete-btn" onclick="deleteItem(${item.id})">Hapus</button>
                 </td>
@@ -623,14 +637,14 @@
         const ppn = subtotal * 0.11;
         const grandTotal = subtotal + ppn;
 
-        function formatAngka(num) {
+        function formatAngkaRp(num) {
             return "Rp " + num.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
         }
 
         document.getElementById('totalItems').textContent = rabItems.length;
-        document.getElementById('subtotal').textContent = formatAngka(subtotal);
-        document.getElementById('ppn').textContent = formatAngka(ppn);
-        document.getElementById('grandTotal').textContent = formatAngka(grandTotal);
+        document.getElementById('subtotal').textContent = formatAngkaRp(subtotal);
+        document.getElementById('ppn').textContent = formatAngkaRp(ppn);
+        document.getElementById('grandTotal').textContent = formatAngkaRp(grandTotal);
     }
 
     function clearForm() {
@@ -712,11 +726,14 @@
                 <td>${item.description}</td>
                 <td>${item.unit}</td>
                 <td>${item.volume}</td>
-                <td>${item.price}</td>
-                <td>${item.total}</td>
+                <td>${formatAngka(item.price)}</td>
+                <td>${formatAngka(item.total)}</td>
             </tr>`;
         });
-        table += `</table>`;
+        table += `</table>
+        <div style="text-align:center; color:#95a5a6; font-size:0.9em; margin-top:40px; opacity:0.8;">
+            © 2025 permana.kp.mjm | All Rights Reserved
+        </div>`;
 
         const blob = new Blob([table], { type: "application/vnd.ms-excel" });
         const url = URL.createObjectURL(blob);
@@ -770,6 +787,7 @@
                     th, td { border: 1px solid #444; padding: 8px; }
                     th { background: #eee; }
                     h2 { margin-bottom: 10px; }
+                    .copyright-print { text-align:center; color:#95a5a6; font-size:0.9em; margin-top:40px; opacity:0.8; }
                 </style>
             </head>
             <body>
@@ -796,11 +814,14 @@
                 <td>${item.description}</td>
                 <td>${item.unit}</td>
                 <td>${item.volume}</td>
-                <td>${item.price}</td>
-                <td>${item.total}</td>
+                <td>${formatAngka(item.price)}</td>
+                <td>${formatAngka(item.total)}</td>
             </tr>`;
         });
         html += `</table>
+            <div class="copyright-print">
+                © 2025 permana.kp.mjm | All Rights Reserved
+            </div>
             </body>
             </html>
         `;
