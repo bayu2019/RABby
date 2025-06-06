@@ -311,14 +311,14 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="save-status" id="saveStatus">✅ Auto-Saved</div>
+                <div class="save-status" id="saveStatus">💾 Manual Save</div>
                 <div class="copyright">© 2025 permana.kp.mjm<br>All Rights Reserved</div>
             </div>
         </div>
         
         <div class="content">
             <div class="auto-save-info">
-                <strong>🔄 AUTO-SAVE AKTIF</strong> - Data Anda otomatis tersimpan di browser ini. Tidak akan hilang saat refresh atau tutup aplikasi.
+                <strong>💾 MANUAL SAVE</strong> - Data hanya tersimpan jika Anda klik tombol <b>SAVE DATA</b> di bawah. Data tidak akan hilang saat refresh/tutup aplikasi jika sudah di-save.
             </div>
             
             <!-- Project Information -->
@@ -431,6 +431,7 @@
                 <button class="export-btn" onclick="exportToCSV()">📄 Export CSV</button>
                 <button class="export-btn" onclick="printRAB()">🖨️ Print RAB</button>
                 <button class="export-btn" onclick="clearAllData()">🗑️ Clear Data</button>
+                <button class="export-btn" onclick="saveToStorage()">💾 Save Data</button>
             </div>
         </div>
     </div>
@@ -439,7 +440,6 @@
     let rabItems = [];
     let itemCounter = 0;
 
-    // Auto-save functionality pakai localStorage
     function saveToStorage() {
         const data = {
             rabItems: rabItems,
@@ -473,7 +473,7 @@
             localStorage.setItem('rab_total_chunks', totalChunks.toString());
             localStorage.setItem('rab_last_save', new Date().toISOString());
 
-            document.getElementById('saveStatus').textContent = '✅ Auto-Saved';
+            document.getElementById('saveStatus').textContent = '✅ Data Saved';
             document.getElementById('saveStatus').style.background = 'rgba(46, 204, 113, 0.2)';
             document.getElementById('saveStatus').style.borderColor = '#27ae60';
             document.getElementById('saveStatus').style.color = '#27ae60';
@@ -526,23 +526,9 @@
         }
     }
 
-    // Auto-save on every change
-    function autoSave() {
-        setTimeout(() => {
-            saveToStorage();
-        }, 500);
-    }
-
     // Set today's date and load data
     document.getElementById('projectDate').value = new Date().toISOString().split('T')[0];
     loadFromStorage();
-
-    // Add event listeners for auto-save
-    document.getElementById('projectName').addEventListener('input', autoSave);
-    document.getElementById('projectLocation').addEventListener('input', autoSave);
-    document.getElementById('projectDate').addEventListener('change', autoSave);
-    document.getElementById('projectConsultant').addEventListener('input', autoSave);
-    document.getElementById('projectSupplier').addEventListener('input', autoSave);
 
     function formatRupiah(amount) {
         return new Intl.NumberFormat('id-ID', {
@@ -577,7 +563,6 @@
         updateTable();
         clearForm();
         updateSummary();
-        autoSave();
     }
 
     function deleteItem(id) {
@@ -585,7 +570,6 @@
             rabItems = rabItems.filter(item => item.id !== id);
             updateTable();
             updateSummary();
-            autoSave();
         }
     }
 
@@ -623,21 +607,26 @@
     }
 
     function updateSummary() {
-    const subtotal = rabItems.reduce((sum, item) => sum + item.total, 0);
-    const ppn = subtotal * 0.11;
-    const grandTotal = subtotal + ppn;
+        const subtotal = rabItems.reduce((sum, item) => sum + item.total, 0);
+        const ppn = subtotal * 0.11;
+        const grandTotal = subtotal + ppn;
 
-    // Format angka ribuan tanpa desimal, satu kali "Rp"
-    function formatAngka(num) {
-        return "Rp " + num.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        function formatAngka(num) {
+            return "Rp " + num.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        document.getElementById('totalItems').textContent = rabItems.length;
+        document.getElementById('subtotal').textContent = formatAngka(subtotal);
+        document.getElementById('ppn').textContent = formatAngka(ppn);
+        document.getElementById('grandTotal').textContent = formatAngka(grandTotal);
     }
 
-    document.getElementById('totalItems').textContent = rabItems.length;
-    document.getElementById('subtotal').textContent = formatAngka(subtotal);
-    document.getElementById('ppn').textContent = formatAngka(ppn);
-    document.getElementById('grandTotal').textContent = formatAngka(grandTotal);
-}
-    
+    function clearForm() {
+        document.getElementById('itemDescription').value = '';
+        document.getElementById('itemUnit').value = '';
+        document.getElementById('itemVolume').value = '';
+        document.getElementById('itemPrice').value = '';
+    }
 
     function clearAllData() {
         if (confirm('Yakin ingin menghapus SEMUA data? Tindakan ini tidak dapat dibatalkan!')) {
